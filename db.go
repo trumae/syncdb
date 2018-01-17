@@ -151,8 +151,11 @@ func (db *SyncDB) Begin() error {
 	if db.Debug {
 		log.Println("BEGIN", strace())
 	}
-	idtx := uuid.NewV4().String()
-	return db.beginWithIDAndDatetime(idtx, "")
+	idtx, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
+	return db.beginWithIDAndDatetime(idtx.String(), "")
 }
 
 //beginWithIDAndDatetime init transaction
@@ -281,9 +284,12 @@ func (db *SyncDB) Exec(sql string, params []interface{}) error {
 		return err
 	}
 
-	idlog := uuid.NewV4().String()
+	idlog, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
 	_, err = db.tx.Exec("INSERT INTO __DBLOG__(id, txid, sql, seq, datetime) VALUES (?, ?, ?, ?, datetime('now'))",
-		idlog,
+		idlog.String(),
 		db.idtx,
 		string(b),
 		db.seq)

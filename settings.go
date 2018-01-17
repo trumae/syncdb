@@ -40,14 +40,17 @@ func (db *SyncDB) Set(key, value string) error {
 	return nil
 }
 
-func (db *SyncDB) initSettings() {
+func (db *SyncDB) initSettings() error {
 	db.Begin()
 	defer db.Commit()
 
 	_, err := db.Get("id")
 	if err != nil {
-		id := uuid.NewV4().String()
-		db.Set("id", id)
+		id, err := uuid.NewV4()
+		if err != nil {
+			return err
+		}
+		db.Set("id", id.String())
 	}
-
+	return nil
 }
