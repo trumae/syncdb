@@ -11,11 +11,18 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	rum "github.com/rumlang/rum/runtime"
 )
 
 var (
 	//ErrIDNotFound error when the key is not found on setting
 	ErrIDNotFound = errors.New("Error getting ID from txlogs tables")
+
+	//URLDiscoverService is where the sync system get info about the nodes on companies
+	URLDiscoverService = "https://piscine-monsieur-96181.herokuapp.com"
+
+	RumContext *rum.Context
 )
 
 type logReg struct {
@@ -39,6 +46,7 @@ type msgDiff struct {
 type NodeInfo struct {
 	IP   string
 	Port string
+	Rum  string
 }
 
 func handleGetAllUUIDs(w http.ResponseWriter, r *http.Request) {
@@ -121,7 +129,7 @@ func getMyIPs() ([]string, error) {
 }
 
 func discoverNodes(ip []string, company, port, id string) (map[string]NodeInfo, error) {
-	res, err := http.Get("https://piscine-monsieur-96181.herokuapp.com/?i=" + strings.Join(ip, ",") +
+	res, err := http.Get(URLDiscoverService + "/?i=" + strings.Join(ip, ",") +
 		"&c=" + company + "&p=" + port + "&id=" + id)
 	if err != nil {
 		return nil, err
@@ -194,6 +202,16 @@ func (db *SyncDB) Sync() error {
 					err = db.syncWithNode(ip, val.Port)
 					if err != nil {
 						log.Println(err)
+					}
+				}
+			}
+		} else {
+			if RumContext != nil {
+				//process scripts
+				if len(val.Rum) > 0 {
+					_, err := rumEval(val.Rum, RumContext)
+					if err != nil {
+						log.Println("RUM:", err)
 					}
 				}
 			}
