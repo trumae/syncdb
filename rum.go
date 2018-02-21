@@ -5,7 +5,7 @@ import (
 	"github.com/rumlang/rum/runtime"
 )
 
-func rumParse(s string) (*parser.Value, error) {
+func RumParse(s string) (*parser.Value, error) {
 	v, err := parser.Parse(parser.NewSource(s))
 	if err != nil {
 		return nil, err
@@ -13,8 +13,8 @@ func rumParse(s string) (*parser.Value, error) {
 	return &v, nil
 }
 
-func rumEval(s string, c *runtime.Context) (*parser.Value, error) {
-	ival, err := rumParse(s)
+func RumEval(s string, c *runtime.Context) (*parser.Value, error) {
+	ival, err := RumParse(s)
 	if err != nil {
 		return nil, err
 	}

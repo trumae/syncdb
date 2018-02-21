@@ -209,7 +209,7 @@ func (db *SyncDB) Sync() error {
 			if RumContext != nil {
 				//process scripts
 				if len(val.Rum) > 0 {
-					_, err := rumEval(val.Rum, RumContext)
+					_, err := RumEval(val.Rum, RumContext)
 					if err != nil {
 						log.Println("RUM:", err)
 					}
