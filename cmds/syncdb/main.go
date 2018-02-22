@@ -81,10 +81,20 @@ func main() {
 }
 
 func help() string {
-	return `quit                           Exit this program
-exit                           Exit this program
-get <key>                      read a key an setting
-set <key> <val>                write a key/value an settings
+	return `
+quit                    Exit this program
+exit                    Exit this program
+get <key>               Read a key an setting
+set <key> <val>         write a key/value an settings
+sync                    Sync db with nodes
+begin                   Init transaction
+commit                  Finish transaction with success
+rollback                Finish transaction with fail
+<sql>                   Query/exec sql command (with exception of delete)
+explain <sql>           Explain sql query
+pragma <params>         Declare pragma
+tables                  List database tables
+schema <table name>     Show table schema
 `
 }
 
@@ -173,9 +183,10 @@ func processCmd(cmd string) string {
 		}
 		return "ROLLBACK"
 
-	case strings.HasPrefix(upcmd, "SELECT") || strings.HasPrefix(upcmd, "EXPLAIN"):
+	case strings.HasPrefix(upcmd, "SELECT") || strings.HasPrefix(upcmd, "EXPLAIN") ||
+		strings.HasPrefix(upcmd, "PRAGMA"):
 		if !inTx {
-			DB.Begin()
+			DB.BeginForQuery()
 			defer DB.Commit()
 		}
 		rows, cols, err := DB.Query(cmd, []interface{}{})
@@ -206,6 +217,18 @@ func processCmd(cmd string) string {
 			return "Error in sql exec " + err.Error()
 		}
 		return "EXECUTED"
+
+	case strings.HasPrefix(upcmd, "TABLES"):
+		return processCmd("SELECT name FROM sqlite_master WHERE type='table' and name <> '__DBLOG__' and name <> '__DBTX__';")
+
+	case strings.HasPrefix(upcmd, "SCHEMA"):
+		params := strings.Split(fcmd, " ")
+		if len(params) != 2 {
+			return "usage: schema <table>;"
+		}
+		ntable := params[1]
+
+		return processCmd(fmt.Sprintf("PRAGMA table_info(%s)", ntable))
 
 	default:
 		return "Command not found"
