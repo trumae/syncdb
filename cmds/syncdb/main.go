@@ -173,6 +173,25 @@ func processCmd(cmd string) string {
 		}
 		return "ROLLBACK"
 
+	case strings.HasPrefix(upcmd, "SELECT"):
+		if !inTx {
+			DB.Begin()
+			defer DB.Commit()
+		}
+		rows, cols, err := DB.Query(cmd, []interface{}{})
+		if err != nil {
+			return "Error in query " + err.Error()
+		}
+
+		ret := strings.Join(cols, "| ")
+		for _, row := range rows {
+			ret += "\n|"
+			for _, cell := range row {
+				ret += *cell.(*string) + " | "
+			}
+		}
+		return ret
+
 	default:
 		return "Command not found"
 	}
