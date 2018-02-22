@@ -83,6 +83,8 @@ func main() {
 func help() string {
 	return `quit                           Exit this program
 exit                           Exit this program
+get <key>                      read a key an setting
+set <key> <val>                write a key/value an settings
 `
 }
 
@@ -142,6 +144,34 @@ func processCmd(cmd string) string {
 			return "Error in sync " + err.Error()
 		}
 		return "Done"
+
+	case strings.HasPrefix(upcmd, "BEGIN"):
+		if !inTx {
+			DB.Begin()
+			inTx = true
+		} else {
+			return "Just in a transaction"
+		}
+
+		return "BEGIN"
+
+	case strings.HasPrefix(upcmd, "COMMIT"):
+		if inTx {
+			DB.Commit()
+			inTx = false
+		} else {
+			return "Not in a transaction"
+		}
+		return "COMMIT"
+
+	case strings.HasPrefix(upcmd, "ROLLBACK"):
+		if inTx {
+			DB.Rollback()
+			inTx = false
+		} else {
+			return "Not in a transaction"
+		}
+		return "ROLLBACK"
 
 	default:
 		return "Command not found"
