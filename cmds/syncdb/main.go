@@ -111,7 +111,7 @@ func processCmd(cmd string) string {
 		val := params[2]
 		err := DB.Set(key, val)
 		if err != nil {
-			return "Error write setting"
+			return "Error write setting " + err.Error()
 		}
 
 		return key + " = " + val
@@ -131,10 +131,17 @@ func processCmd(cmd string) string {
 		key := params[1]
 		val, err := DB.Get(key)
 		if err != nil {
-			return "Error read setting"
+			return "Error read setting " + err.Error()
 		}
 
 		return key + " = " + val
+
+	case strings.HasPrefix(upcmd, "SYNC"):
+		err := DB.Sync()
+		if err != nil {
+			return "Error in sync " + err.Error()
+		}
+		return "Done"
 
 	default:
 		return "Command not found"
