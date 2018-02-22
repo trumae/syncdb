@@ -173,7 +173,7 @@ func processCmd(cmd string) string {
 		}
 		return "ROLLBACK"
 
-	case strings.HasPrefix(upcmd, "SELECT"):
+	case strings.HasPrefix(upcmd, "SELECT") || strings.HasPrefix(upcmd, "EXPLAIN"):
 		if !inTx {
 			DB.Begin()
 			defer DB.Commit()
@@ -183,14 +183,29 @@ func processCmd(cmd string) string {
 			return "Error in query " + err.Error()
 		}
 
-		ret := strings.Join(cols, "| ")
+		ret := "| "
+		ret += strings.Join(cols, " | ")
+		ret += " |"
 		for _, row := range rows {
-			ret += "\n|"
+			ret += "\n| "
 			for _, cell := range row {
 				ret += *cell.(*string) + " | "
 			}
 		}
 		return ret
+
+	case strings.HasPrefix(upcmd, "UPDATE") || strings.HasPrefix(upcmd, "CREATE") ||
+		strings.HasPrefix(upcmd, "ALTER") || strings.HasPrefix(upcmd, "INSERT"):
+
+		if !inTx {
+			DB.Begin()
+			defer DB.Commit()
+		}
+		err := DB.Exec(cmd, []interface{}{})
+		if err != nil {
+			return "Error in sql exec " + err.Error()
+		}
+		return "EXECUTED"
 
 	default:
 		return "Command not found"
