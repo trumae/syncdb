@@ -24,6 +24,11 @@ const textBanner = `
 
 GoVersion: {{ .GoVersion }}
 GOOS: {{ .GOOS }}
+GOARCH: {{ .GOARCH }}
+NumCPU: {{ .NumCPU }}
+Compiler: {{ .Compiler }}
+Now: {{ .Now "Monday, 2 Jan 2006" }}
+
 `
 
 var (
