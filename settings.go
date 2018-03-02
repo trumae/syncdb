@@ -40,6 +40,21 @@ func (db *SyncDB) Set(key, value string) error {
 	return nil
 }
 
+//GSet value to key into settings for all p2p network
+func (db *SyncDB) GSet(key, value string) error {
+	err := db.Exec("DELETE FROM SETTINGS WHERE KEY = ?", []interface{}{key})
+	if err != nil {
+		return err
+	}
+
+	err = db.Exec("INSERT INTO SETTINGS(ID, KEY, VALUE) VALUES(null, ?,?)", []interface{}{key, value})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (db *SyncDB) initSettings() error {
 	db.Begin()
 	defer db.Commit()

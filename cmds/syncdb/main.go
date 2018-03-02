@@ -91,6 +91,7 @@ quit                    Exit this program
 exit                    Exit this program
 get <key>               Read a key an setting
 set <key> <val>         write a key/value an settings
+gset <key> <val>        write a key/value an settings(global)
 sync                    Sync db with nodes
 begin                   Init transaction
 commit                  Finish transaction with success
@@ -127,6 +128,26 @@ func processCmd(cmd string) string {
 		key := params[1]
 		val := params[2]
 		err := DB.Set(key, val)
+		if err != nil {
+			return "Error write setting " + err.Error()
+		}
+
+		return key + " = " + val
+
+	case strings.HasPrefix(upcmd, "GSET"):
+		params := strings.Split(fcmd, " ")
+		if len(params) != 3 {
+			return "usage: gset <key> <val>;"
+		}
+
+		if !inTx {
+			DB.Begin()
+			defer DB.Commit()
+		}
+
+		key := params[1]
+		val := params[2]
+		err := DB.GSet(key, val)
 		if err != nil {
 			return "Error write setting " + err.Error()
 		}
