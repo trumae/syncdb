@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/trumae/sinc/syncdb"
+	"github.com/trumae/syncdb"
 )
 
 func main() {
@@ -36,6 +36,6 @@ func main() {
 			log.Fatal(err)
 		}
 
-		time.Sleep(10 * time.Second)
+		time.Sleep(300 * time.Second)
 	}
 }
